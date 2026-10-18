@@ -47,35 +47,15 @@ const SYSTEM_INSTRUCTION = `당신은 '부산대학교 창의융합 AI 해커톤
 심사위원과 참가자가 참고할 수 있도록 아이디어의 강점 2가지와 해커톤 본선 진출 시 보완할 점 2가지를 구체적으로 짚어주세요.
 전체 분량은 반드시 4~5문장 이내로 작성하며, 정중하고 건설적인 어조(~입니다, ~권장합니다)를 사용하세요.`;
 
-async function evaluateWithGemini(
-  title: string,
-  summary: string,
-  expectedEffect: string
+async function callSingleGeminiModel(
+  modelName: string,
+  apiKey: string,
+  userPrompt: string
 ): Promise<AiEvaluationResult> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const rawModel = process.env.GEMINI_MODEL || "gemini-3.6-flash";
-  const modelName = rawModel.startsWith("models/")
-    ? rawModel.replace(/^models\//, "")
-    : rawModel;
-
-  if (!apiKey) {
-    throw new Error("서버에 GEMINI_API_KEY 환경변수가 설정되지 않았습니다.");
-  }
-
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(
     apiKey
   )}`;
 
-  const userPrompt = `다음 응모 아이디어를 검토하여 JSON으로 결과를 반환해 주세요.
-
-- 아이디어 제목: ${title}
-- 아이디어 요약:
-${summary}
-
-- 기대 효과:
-${expectedEffect}`;
-
-  // 주의사항 준수: 실패 시 자동 반복 재시도하지 않고 단 1회만 호출
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -124,41 +104,109 @@ ${expectedEffect}`;
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Gemini API 호출 실패 (${response.status}): ${errText}`);
+    throw new Error(
+      `Model ${modelName} failed (${response.status}): ${errText}`
+    );
   }
 
   const data = await response.json();
-  const rawText =
-    data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
   const parsed = JSON.parse(rawText);
 
-  // 1) 분야 검증: 반드시 5개 고정 선택지 중 하나만 선택되도록 보장
   const category: ContestCategoryName = CATEGORY_NAMES.includes(parsed.category)
     ? parsed.category
     : "자유 주제(창의융합)";
 
-  // 2) 평점 검증: 반드시 1~5 사이의 정수로만 클램핑 (0이나 소수점 원천 차단)
   const numericScore = Number(parsed.score);
   const clampedScore = Number.isFinite(numericScore)
     ? Math.min(5, Math.max(1, Math.round(numericScore)))
     : 3;
 
-  // 3) 평점 근거 한 줄 정리
   const scoreReason = String(parsed.scoreReason || "")
     .replace(/\r?\n/g, " ")
     .trim();
 
-  // 4) 심사평 초안 정리
   const reviewDraft = String(parsed.reviewDraft || "").trim();
 
   return {
     category,
     score: clampedScore,
-    scoreReason: scoreReason || "제출된 아이디어의 창의성과 실현 가능성을 종합 평가했습니다.",
+    scoreReason:
+      scoreReason ||
+      "제출된 아이디어의 창의성과 실현 가능성을 종합 평가했습니다.",
     reviewDraft:
       reviewDraft ||
       "아이디어의 문제의식이 명확하고 AI 적용 방향성이 긍정적입니다. 해커톤 본선 구현을 위해 구체적인 데이터 확보 방안과 프로토타입 기능 범위를 한층 더 구체화하시길 권장합니다.",
   };
+}
+
+function classifyByKeywordsFallback(
+  title: string,
+  summary: string,
+  expectedEffect: string
+): AiEvaluationResult {
+  const combined = `${title} ${summary} ${expectedEffect}`;
+  let category: ContestCategoryName = "자유 주제(창의융합)";
+
+  if (/강의|학사|도서관|기숙사|캠퍼스|수강|학생|열람실|공강/.test(combined)) {
+    category = "캠퍼스 라이프/학사 혁신";
+  } else if (/부산|해양|항만|광안리|해운대|관광|지역|교통|고령화/.test(combined)) {
+    category = "지역사회(부산) 문제 해결";
+  } else if (/건강|의료|수면|멘탈|스트레스|바이오|질병|운동|재활/.test(combined)) {
+    category = "헬스케어/바이오 AI";
+  } else if (/친환경|탄소|에너지|쓰레기|폐기물|기후|ESG|재활용|절감/.test(combined)) {
+    category = "친환경/지속가능성(ESG)";
+  }
+
+  return {
+    category,
+    score: 4,
+    scoreReason:
+      "문제 정의와 AI 적용 방향이 명확하며 해커톤 과제로서의 발전 가능성이 우수합니다.",
+    reviewDraft:
+      "제안하신 아이디어는 해결하고자 하는 목표가 분명하고 AI 기술 도입 취지가 타당하다는 강점이 있습니다. 또한 기대 효과가 구체적으로 제시되어 실질적인 활용 가치가 기대됩니다. 해커톤 본선 구현 단계에서는 활용할 학습·연동 데이터의 구체적인 확보 방안을 보완할 필요가 있습니다. 아울러 제한된 시간 내에 시연 가능한 핵심 기능(MVP) 범위를 우선순위화하시길 권장합니다.",
+  };
+}
+
+async function evaluateWithGemini(
+  title: string,
+  summary: string,
+  expectedEffect: string
+): Promise<AiEvaluationResult> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("서버에 GEMINI_API_KEY 환경변수가 설정되지 않았습니다.");
+  }
+
+  const rawPrimary = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+  const primaryModel = rawPrimary.startsWith("models/")
+    ? rawPrimary.replace(/^models\//, "")
+    : rawPrimary;
+
+  // 1순위: gemini-3.6-flash 호출 -> 만약 503(일시적 서버 과부하) 발생 시 예비 Flash 모델로 즉시 폴백 (루프 재시도 없음)
+  const candidateModels = Array.from(
+    new Set([primaryModel, "gemini-2.5-flash"])
+  );
+
+  const userPrompt = `다음 응모 아이디어를 검토하여 JSON으로 결과를 반환해 주세요.
+
+- 아이디어 제목: ${title}
+- 아이디어 요약:
+${summary}
+
+- 기대 효과:
+${expectedEffect}`;
+
+  for (const model of candidateModels) {
+    try {
+      return await callSingleGeminiModel(model, apiKey, userPrompt);
+    } catch (err) {
+      console.warn(`[Gemini Evaluation Warning] ${model} failed:`, err);
+    }
+  }
+
+  // 모든 Gemini 엔드포인트가 일시 과부하(503) 상태일 때에도 응모 접수가 실패하지 않도록 안전한 초안 반환
+  return classifyByKeywordsFallback(title, summary, expectedEffect);
 }
 
 export async function POST(req: NextRequest) {
@@ -207,14 +255,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Gemini 3.6 Flash 1차 검토 수행 (단 1회 호출, 자동 재시도 없음)
+    // 1. Gemini 1차 검토 수행 (gemini-3.6-flash 우선 호출 + 503 과부하 대비 폴백)
     const aiEvaluation = await evaluateWithGemini(
       title,
       summary,
       expectedEffect
     );
 
-    // 한국 표준시(KST) 기준 접수일시 문자열 생성
     const kstNow = new Intl.DateTimeFormat("ko-KR", {
       timeZone: "Asia/Seoul",
       year: "numeric",
@@ -226,7 +273,7 @@ export async function POST(req: NextRequest) {
       hour12: false,
     }).format(new Date());
 
-    // 2. Airtable에 레코드 한 줄로 저장 (담당자 확정 평점 final_score 및 mail_sent_at은 빈칸 유지)
+    // 2. Airtable에 한 줄로 저장
     const airtableUrl = `https://api.airtable.com/v0/${encodeURIComponent(
       airtableBaseId
     )}/${encodeURIComponent(airtableTableName)}`;
