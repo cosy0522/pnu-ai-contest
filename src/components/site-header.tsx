@@ -1,20 +1,28 @@
 import Link from "next/link";
-import { Sparkles, FileEdit, BarChart3, Home } from "lucide-react";
+import Image from "next/image";
+import { FileEdit, BarChart3, Home } from "lucide-react";
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="h-1.5 w-full bg-gradient-to-r from-blue-900 via-blue-600 to-sky-400" />
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm group-hover:bg-blue-800 transition-colors">
-            <Sparkles className="h-5 w-5" />
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative flex shrink-0 items-center justify-center">
+            <Image
+              src="/pnu-logo.svg"
+              alt="부산대학교 로고"
+              width={48}
+              height={48}
+              priority
+              className="h-9 w-9 sm:h-11 sm:w-11 object-contain transition-transform group-hover:scale-105"
+            />
           </div>
           <div>
             <p className="text-[11px] font-bold tracking-wider text-blue-700 uppercase">
               Pusan National University
             </p>
-            <p className="text-base font-bold tracking-tight text-slate-900">
+            <p className="text-sm sm:text-base font-bold tracking-tight text-slate-900">
               창의융합 AI 해커톤 아이디어 공모전
             </p>
           </div>

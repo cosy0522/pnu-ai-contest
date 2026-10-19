@@ -30,7 +30,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
           <div className="space-y-6 max-w-3xl">
             <Badge className="bg-sky-500/20 text-sky-200 border border-sky-400/30 px-3 py-1 text-xs font-semibold">
-              2027 부산대학교 창의융합 AI 해커톤 사전 공모
+              2027 창의융합 AI 해커톤 공모
             </Badge>
             <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl leading-tight">
               부산대학교 창의융합 AI 해커톤 참여를 위한{" "}
@@ -38,7 +38,7 @@ export default function HomePage() {
             </h1>
             <p className="text-base sm:text-lg text-slate-200 leading-relaxed">
               캠퍼스와 지역사회의 내일을 바꿀 창의적인 AI 아이디어를 찾습니다.
-              우수 제안 팀에게는 상금과 함께 창의융합 AI 해커톤 본선 직행 티켓이
+              우수 제안 팀에게는 상금과 함께 창의융합 AI 해커톤 본선 진출 특전이
               부여됩니다!
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -103,7 +103,9 @@ export default function HomePage() {
               </CardHeader>
               <CardContent className="text-sm text-slate-600 space-y-1">
                 <p>• 재학생 및 휴학생 모두 참여 가능</p>
-                <p>• 개인 또는 2~4인 팀 단위 응모</p>
+                <p>
+                  • 개인 또는 2~4인 팀 단위 응모(SW비전공생 1인 이상 필수 참여)
+                </p>
                 <p>• 코딩/개발 경험이 없어도 아이디어만으로 지원 가능</p>
               </CardContent>
             </Card>
@@ -115,11 +117,11 @@ export default function HomePage() {
                   <span>접수 기간 및 일정</span>
                 </div>
                 <CardTitle className="text-lg pt-1 text-blue-900">
-                  ~ 2027년 12월 31일(금) 까지
+                  2027.05.14(금) 까지
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-slate-600 space-y-1">
-                <p>• 온라인 상시 접수 (23:59 마감)</p>
+                <p>• 온라인 상시 접수 (2027.05.14(금) 마감)</p>
                 <p>• 1차 AI 검토 초안: 접수 시 자동 생성</p>
                 <p>• 최종 심사: 심사위원단이 직접 확정 평점 부여</p>
               </CardContent>
@@ -132,13 +134,14 @@ export default function HomePage() {
                   <span>시상 규모 및 특전</span>
                 </div>
                 <CardTitle className="text-lg pt-1">
-                  총 6팀 선발 · 총상금 290만 원
+                  총 20팀 내외 선발 (본선) 총상금 870만원
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-slate-600 space-y-1">
-                <p>• 🏆 대상 (1팀): 100만 원 + 해커톤 본선권</p>
-                <p>• 🥈 최우수상 (2팀): 각 50만 원 + 해커톤 본선권</p>
-                <p>• 🥉 우수상 (3팀): 각 30만 원 + 해커톤 본선권</p>
+                <p>• 🏆 대상(2팀) : 각 2백만원</p>
+                <p>• 🥈 최우수상(2팀) : 각 1백만원</p>
+                <p>• 🥉 우수상(3팀) : 각 5십만원</p>
+                <p>• 🎖️ 장려상(4팀) : 각 3십만원</p>
               </CardContent>
             </Card>
           </div>

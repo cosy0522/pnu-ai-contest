@@ -31,7 +31,7 @@ export function SiteFooter() {
               <span className="font-semibold text-white">연락처:</span> 010-1234-5678
             </p>
             <p>
-              <span className="font-semibold text-white">접수 마감:</span> 2027년 12월 31일(금) 23:59까지
+              <span className="font-semibold text-white">접수 마감:</span> 2027.05.14(금) 까지
             </p>
           </div>
         </div>

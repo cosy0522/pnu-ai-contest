@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "부산대학교 창의융합 AI 해커톤 아이디어 공모전",
   description:
-    "2027년 12월 31일까지 부산대학교 학생들을 대상으로 진행되는 창의융합 AI 해커톤 참여를 위한 AI 활용 아이디어 공모전 공식 접수 사이트입니다.",
+    "2027.05.14(금)까지 부산대학교 학생들을 대상으로 진행되는 창의융합 AI 해커톤 참여를 위한 AI 활용 아이디어 공모전 공식 접수 사이트입니다.",
 };
 
 export default function RootLayout({
